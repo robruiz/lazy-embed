@@ -1,0 +1,12 @@
+{
+  "entries": [
+    "components/lazy-embed/lazy-embed.js"
+  ],
+  "compiler": {
+    "name": "@stencil/core",
+    "version": "4.31.0",
+    "typescriptVersion": "5.5.4"
+  },
+  "collections": [],
+  "bundles": []
+}

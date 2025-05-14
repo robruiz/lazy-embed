@@ -1,0 +1,57 @@
+<!doctype html><html dir="ltr" lang="en"><head> <meta charset="utf-8"> <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=5.0"> <title>Lazy Embed Component Demo</title> <link rel="modulepreload" href="/build/p-CAMS5NHk.js"><script type="module" data-stencil data-resources-url="/build/" data-stencil-namespace="lazy-embed">import{p as e,b as o}from"/build/p-CAMS5NHk.js";export{s as setNonce}from"/build/p-CAMS5NHk.js";import{g as a}from"/build/p-DQuL1Twl.js";var i=()=>{const o=import.meta.url;const a={};if(o!==""){a.resourcesUrl=new URL(".",o).href}return e(a)};i().then((async e=>{await a();return o([["p-fe2736f5",[[1,"lazy-embed",{src:[1],previewImage:[1,"preview-image"],alt:[1],width:[1],height:[1],videoTitle:[1,"video-title"],loadOnVisible:[4,"load-on-visible"],loadOnParentOpen:[1,"load-on-parent-open"],loadOnClickSelector:[1,"load-on-click-selector"],loaded:[32],loadVideo:[64]},[[0,"click","handleClick"]]]]]],e)}));
+//# sourceMappingURL=lazy-embed.esm.js.map
+</script> <script nomodule="" src="/build/lazy-embed.js" data-stencil></script> <style>body {
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 20px;
+      }
+      section {
+        margin-bottom: 40px;
+      }
+      h1 {
+        border-bottom: 1px solid #eee;
+        padding-bottom: 10px;
+      }
+      h2 {
+        margin-top: 30px;
+        color: #333;
+      }
+      .example-container {
+        max-width: 800px;
+        margin: 20px 0;
+      }
+      .toggle-container {
+        margin: 20px 0;
+      }
+      button {
+        padding: 10px 15px;
+        background-color: #4CAF50;
+        color: white;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 16px;
+      }
+      button:hover {
+        background-color: #45a049;
+      }
+      #modal {
+        display: none;
+        padding: 20px;
+        background-color: #f9f9f9;
+        border: 1px solid #ddd;
+        margin-top: 10px;
+      }</style> </head> <body> <h1>Lazy Embed Component Demo</h1> <section> <h2>Basic Example (Click to Load)</h2> <p>Click on the preview image to load the video.</p> <div class="example-container"> <lazy-embed src="https://www.youtube.com/watch?v=dQw4w9WgXcQ" preview-image="https://img.youtube.com/vi/dQw4w9WgXcQ/maxresdefault.jpg" alt="Rick Astley - Never Gonna Give You Up" video-title="Rick Astley - Never Gonna Give You Up"></lazy-embed> </div> </section> <section> <h2>Auto-Load on Visibility</h2> <p>This video will load automatically when it becomes visible in the viewport. Scroll down to see it load.</p> <div style="height: 800px; background: linear-gradient(to bottom, #f5f5f5, #e0e0e0);"> <div style="text-align: center; padding-top: 400px;">Scroll down to see the next example</div> </div> <div class="example-container"> <lazy-embed src="https://vimeo.com/148751763" preview-image="https://i.vimeocdn.com/video/547778692_640.jpg" alt="Vimeo Example" video-title="The New Vimeo Player" load-on-visible="true"></lazy-embed> </div> </section> <section> <h2>Load When Parent Element is Opened</h2> <p>This video will load when the "modal" containing it is opened.</p> <div class="toggle-container"> <button id="toggleModal">Open Modal</button> <div id="modal"> <h3>Modal Content</h3> <div class="example-container"> <lazy-embed src="https://www.youtube.com/watch?v=C0DPdy98e4c" preview-image="https://img.youtube.com/vi/C0DPdy98e4c/maxresdefault.jpg" alt="Animation vs. Physics" video-title="Animation vs. Physics" load-on-parent-open="#modal"></lazy-embed> </div> </div> </div> </section> <section> <h2>Custom Dimensions</h2> <p>This example has custom width and height.</p> <div class="example-container"> <lazy-embed src="https://www.youtube.com/watch?v=jNQXAC9IVRw" preview-image="https://img.youtube.com/vi/jNQXAC9IVRw/maxresdefault.jpg" alt="Me at the zoo" video-title="Me at the zoo" width="400px" height="300px"></lazy-embed> </div> </section> <section> <button id="playButton">Play Video</button> <!-- The lazy-embed component --> <lazy-embed src="https://www.youtube.com/watch?v=dQw4w9WgXcQ" preview-image="https://img.youtube.com/vi/dQw4w9WgXcQ/maxresdefault.jpg" load-on-click-selector="#playButton"></lazy-embed> </section> <script>
+      // Toggle modal for the third example
+      document.getElementById('toggleModal').addEventListener('click', function() {
+        const modal = document.getElementById('modal');
+        if (modal.style.display === 'block') {
+          modal.style.display = 'none';
+          this.textContent = 'Open Modal';
+        } else {
+          modal.style.display = 'block';
+          this.textContent = 'Close Modal';
+        }
+      });
+    </script> </body></html>
