@@ -2,7 +2,7 @@ name: Build and Publish
 
 on:
   push:
-    branches: [ main ]
+    branches: [ master ]
     tags: [ 'v*' ]
 
 jobs:
@@ -27,6 +27,7 @@ jobs:
         with:
           folder: www
           target-folder: docs
+          branch: master
 
       # Create GitHub Release when a tag is pushed
       - name: Create Release
