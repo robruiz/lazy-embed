@@ -2,7 +2,7 @@ name: Build and Publish
 
 on:
   push:
-    branches: [ main ]
+    branches: [ master ]
     tags: [ 'v*' ]
 
 jobs:
@@ -26,6 +26,7 @@ jobs:
         uses: JamesIves/github-pages-deploy-action@v4
         with:
           folder: www
+          target-folder: docs
 
       # Create GitHub Release when a tag is pushed
       - name: Create Release
