@@ -1,7 +1,7 @@
 {
-  "name": "lazy-embed",
+  "name": "@robcruiz/lazy-embed",
   "version": "0.0.1",
-  "description": "Stencil Component Starter",
+  "description": "Lazy Embed Component",
   "main": "dist/index.cjs.js",
   "module": "dist/index.js",
   "types": "dist/types/index.d.ts",
