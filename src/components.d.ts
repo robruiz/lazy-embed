@@ -6,6 +6,48 @@
  */
 import { HTMLStencilElement, JSXBase } from "@stencil/core/internal";
 export namespace Components {
+    interface LazyEmbed {
+        /**
+          * Alternative text for the preview image
+         */
+        "alt": string;
+        /**
+          * Height of the embed (can be px or %)
+         */
+        "height": string;
+        /**
+          * CSS selector for elements that should trigger video loading when clicked
+         */
+        "loadOnClickSelector": string;
+        /**
+          * Whether to load the video automatically when a parent element with the specified selector is opened
+         */
+        "loadOnParentOpen": string;
+        /**
+          * Whether to load the video automatically when it becomes visible
+         */
+        "loadOnVisible": boolean;
+        /**
+          * Load the video by replacing the preview image with the embed iframe
+         */
+        "loadVideo": () => Promise<void>;
+        /**
+          * URL of the preview image to display before loading the video
+         */
+        "previewImage": string;
+        /**
+          * URL of the video to embed (YouTube, Vimeo, etc.)
+         */
+        "src": string;
+        /**
+          * Title of the video (for accessibility)
+         */
+        "videoTitle": string;
+        /**
+          * Width of the embed (can be px or %)
+         */
+        "width": string;
+    }
     interface MyComponent {
         /**
           * The first name
@@ -22,6 +64,12 @@ export namespace Components {
     }
 }
 declare global {
+    interface HTMLLazyEmbedElement extends Components.LazyEmbed, HTMLStencilElement {
+    }
+    var HTMLLazyEmbedElement: {
+        prototype: HTMLLazyEmbedElement;
+        new (): HTMLLazyEmbedElement;
+    };
     interface HTMLMyComponentElement extends Components.MyComponent, HTMLStencilElement {
     }
     var HTMLMyComponentElement: {
@@ -29,10 +77,49 @@ declare global {
         new (): HTMLMyComponentElement;
     };
     interface HTMLElementTagNameMap {
+        "lazy-embed": HTMLLazyEmbedElement;
         "my-component": HTMLMyComponentElement;
     }
 }
 declare namespace LocalJSX {
+    interface LazyEmbed {
+        /**
+          * Alternative text for the preview image
+         */
+        "alt"?: string;
+        /**
+          * Height of the embed (can be px or %)
+         */
+        "height"?: string;
+        /**
+          * CSS selector for elements that should trigger video loading when clicked
+         */
+        "loadOnClickSelector"?: string;
+        /**
+          * Whether to load the video automatically when a parent element with the specified selector is opened
+         */
+        "loadOnParentOpen"?: string;
+        /**
+          * Whether to load the video automatically when it becomes visible
+         */
+        "loadOnVisible"?: boolean;
+        /**
+          * URL of the preview image to display before loading the video
+         */
+        "previewImage"?: string;
+        /**
+          * URL of the video to embed (YouTube, Vimeo, etc.)
+         */
+        "src"?: string;
+        /**
+          * Title of the video (for accessibility)
+         */
+        "videoTitle"?: string;
+        /**
+          * Width of the embed (can be px or %)
+         */
+        "width"?: string;
+    }
     interface MyComponent {
         /**
           * The first name
@@ -48,6 +135,7 @@ declare namespace LocalJSX {
         "middle"?: string;
     }
     interface IntrinsicElements {
+        "lazy-embed": LazyEmbed;
         "my-component": MyComponent;
     }
 }
@@ -55,6 +143,7 @@ export { LocalJSX as JSX };
 declare module "@stencil/core" {
     export namespace JSX {
         interface IntrinsicElements {
+            "lazy-embed": LocalJSX.LazyEmbed & JSXBase.HTMLAttributes<HTMLLazyEmbedElement>;
             "my-component": LocalJSX.MyComponent & JSXBase.HTMLAttributes<HTMLMyComponentElement>;
         }
     }
