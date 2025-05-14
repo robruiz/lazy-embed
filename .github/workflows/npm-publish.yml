@@ -38,10 +38,11 @@ jobs:
           npm version patch
           echo "NEW_VERSION=$(node -p "require('./package.json').version")" >> $GITHUB_OUTPUT
 
-      - name: Publish to NPM
-        run: npm publish --access public
+      - name: Configure NPM Authentication
+        run: npm config set '//registry.npmjs.org/:_authToken' "${NODE_AUTH_TOKEN}"
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
-      - name: Push version changes
-        run: git push --follow-tags
+      - name: Publish to NPM
+        run: npm publish --access public
+
