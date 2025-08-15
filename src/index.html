@@ -87,8 +87,8 @@
     </section>
 
     <section>
-      <h2>Load When Parent Element is Opened</h2>
-      <p>This video will load when the "modal" containing it is opened.</p>
+      <h2>Load When Parent Element is Opened (with Lazy Image Loading)</h2>
+      <p>This video will load when the "modal" containing it is opened. The preview image will also only be requested when the modal becomes visible.</p>
       <div class="toggle-container">
         <button id="toggleModal">Open Modal</button>
         <div id="modal">
@@ -99,7 +99,6 @@
               preview-image="https://img.youtube.com/vi/C0DPdy98e4c/maxresdefault.jpg"
               alt="Animation vs. Physics"
               video-title="Animation vs. Physics"
-              load-on-parent-open="#modal"
             ></lazy-embed>
           </div>
         </div>
@@ -112,7 +111,6 @@
       <div class="example-container">
         <lazy-embed
           src="https://www.youtube.com/watch?v=jNQXAC9IVRw"
-          preview-image="https://img.youtube.com/vi/jNQXAC9IVRw/maxresdefault.jpg"
           alt="Me at the zoo"
           video-title="Me at the zoo"
           width="400px"

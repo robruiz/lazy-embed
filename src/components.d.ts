@@ -24,13 +24,17 @@ export namespace Components {
          */
         "loadOnParentOpen": string;
         /**
-          * Whether to load the video automatically when it becomes visible
+          * Whether to load the preview image automatically when it becomes visible
          */
         "loadOnVisible": boolean;
         /**
           * Load the video by replacing the preview image with the embed iframe
          */
         "loadVideo": () => Promise<void>;
+        /**
+          * Whether to load the video automatically when it becomes visible
+         */
+        "playOnVisible": boolean;
         /**
           * URL of the preview image to display before loading the video
          */
@@ -79,9 +83,13 @@ declare namespace LocalJSX {
          */
         "loadOnParentOpen"?: string;
         /**
-          * Whether to load the video automatically when it becomes visible
+          * Whether to load the preview image automatically when it becomes visible
          */
         "loadOnVisible"?: boolean;
+        /**
+          * Whether to load the video automatically when it becomes visible
+         */
+        "playOnVisible"?: boolean;
         /**
           * URL of the preview image to display before loading the video
          */

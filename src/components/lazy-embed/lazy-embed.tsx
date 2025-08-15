@@ -42,9 +42,14 @@ export class LazyEmbed {
   @Prop() videoTitle: string = '';
 
   /**
-   * Whether to load the video automatically when it becomes visible
+   * Whether to load the preview image automatically when it becomes visible
    */
   @Prop() loadOnVisible: boolean = false;
+
+  /**
+   * Whether to load the video automatically when it becomes visible
+   */
+  @Prop() playOnVisible: boolean = false;
 
   /**
    * Whether to load the video automatically when a parent element with the specified selector is opened
@@ -62,9 +67,19 @@ export class LazyEmbed {
   @State() loaded: boolean = false;
 
   /**
-   * IntersectionObserver instance for detecting when the component is visible
+   * Whether the preview image has been loaded
    */
-  private observer: IntersectionObserver;
+  @State() imageLoaded: boolean = false;
+
+  /**
+   * IntersectionObserver instance for detecting when the component is visible (for video loading)
+   */
+  private playObserver: IntersectionObserver;
+
+  /**
+   * IntersectionObserver instance for detecting when the component is visible (for image loading)
+   */
+  private imageObserver: IntersectionObserver;
 
   /**
    * MutationObserver instance for detecting when a parent element is opened
@@ -91,8 +106,15 @@ export class LazyEmbed {
   connectedCallback() {
     this.parseVideoUrl();
 
-    if (this.loadOnVisible) {
-      this.setupIntersectionObserver();
+    if (this.playOnVisible) {
+      this.setupPlayIntersectionObserver();
+    }
+
+    if (this.loadOnVisible && this.previewImage) {
+      this.setupImageIntersectionObserver();
+    } else if (this.previewImage) {
+      // If loadOnVisible is false, load the image immediately
+      this.imageLoaded = true;
     }
 
     if (this.loadOnParentOpen) {
@@ -108,8 +130,12 @@ export class LazyEmbed {
    * Component lifecycle method that runs when the component is disconnected from the DOM
    */
   disconnectedCallback() {
-    if (this.observer) {
-      this.observer.disconnect();
+    if (this.playObserver) {
+      this.playObserver.disconnect();
+    }
+
+    if (this.imageObserver) {
+      this.imageObserver.disconnect();
     }
 
     if (this.mutationObserver) {
@@ -192,10 +218,10 @@ export class LazyEmbed {
   }
 
   /**
-   * Set up IntersectionObserver to detect when the component is visible
+   * Set up IntersectionObserver to detect when the component is visible for video loading
    */
-  private setupIntersectionObserver() {
-    this.observer = new IntersectionObserver(
+  private setupPlayIntersectionObserver() {
+    this.playObserver = new IntersectionObserver(
       (entries) => {
         if (entries[0].isIntersecting && !this.loaded) {
           this.loadVideo();
@@ -207,7 +233,27 @@ export class LazyEmbed {
       }
     );
 
-    this.observer.observe(this.el);
+    this.playObserver.observe(this.el);
+  }
+
+  /**
+   * Set up IntersectionObserver to detect when the component is visible for image loading
+   */
+  private setupImageIntersectionObserver() {
+    this.imageObserver = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting && !this.imageLoaded) {
+          this.imageLoaded = true;
+          this.imageObserver.disconnect();
+        }
+      },
+      {
+        rootMargin: '50px',
+        threshold: 0.1,
+      }
+    );
+
+    this.imageObserver.observe(this.el);
   }
 
   /**
@@ -277,7 +323,7 @@ export class LazyEmbed {
       return (
         <div class="lazy-embed-container" style={containerStyle}>
           <div class="preview-container">
-            {this.previewImage ? (
+            {this.previewImage && this.imageLoaded ? (
               <img
                 src={this.previewImage}
                 alt={this.alt}
