@@ -12,7 +12,15 @@ export namespace Components {
          */
         "alt": string;
         /**
-          * Height of the embed (can be px or %)
+          * Aspect ratio used when height is "auto" (e.g. "16:9", "4:3", "1:1")
+         */
+        "aspectRatio": string;
+        /**
+          * Whether the embedded video should autoplay once loaded. Note: browsers may still block autoplay if the video has sound.
+         */
+        "autoplay": boolean;
+        /**
+          * Explicit height of the embed. When left as "auto", the embed is sized by the aspectRatio prop instead.
          */
         "height": string;
         /**
@@ -20,11 +28,11 @@ export namespace Components {
          */
         "loadOnClickSelector": string;
         /**
-          * Whether to load the video automatically when a parent element with the specified selector is opened
+          * CSS selector for a parent element that triggers loading when it becomes visible
          */
         "loadOnParentOpen": string;
         /**
-          * Whether to load the preview image automatically when it becomes visible
+          * Load only the preview image when the component becomes visible in the viewport
          */
         "loadOnVisible": boolean;
         /**
@@ -32,25 +40,33 @@ export namespace Components {
          */
         "loadVideo": () => Promise<void>;
         /**
-          * Whether to load the video automatically when it becomes visible
+          * Extra query parameters to append to the embed URL (e.g. "start=30&loop=1")
+         */
+        "params": string;
+        /**
+          * Load the video when it becomes visible in the viewport, without user interaction
          */
         "playOnVisible": boolean;
         /**
-          * URL of the preview image to display before loading the video
+          * URL of the preview image to display before loading the video. When omitted, a YouTube thumbnail is derived automatically for YouTube videos.
          */
         "previewImage": string;
         /**
-          * URL of the video to embed (YouTube, Vimeo, etc.)
+          * URL of the video to embed (YouTube, Vimeo, or any other iframe URL)
          */
         "src": string;
         /**
-          * Title of the video (for accessibility)
+          * Title of the video (used for the iframe title, for accessibility)
          */
         "videoTitle": string;
         /**
           * Width of the embed (can be px or %)
          */
         "width": string;
+        /**
+          * Load YouTube videos via youtube-nocookie.com (enhanced privacy mode)
+         */
+        "youtubeNocookie": boolean;
     }
 }
 declare global {
@@ -71,7 +87,15 @@ declare namespace LocalJSX {
          */
         "alt"?: string;
         /**
-          * Height of the embed (can be px or %)
+          * Aspect ratio used when height is "auto" (e.g. "16:9", "4:3", "1:1")
+         */
+        "aspectRatio"?: string;
+        /**
+          * Whether the embedded video should autoplay once loaded. Note: browsers may still block autoplay if the video has sound.
+         */
+        "autoplay"?: boolean;
+        /**
+          * Explicit height of the embed. When left as "auto", the embed is sized by the aspectRatio prop instead.
          */
         "height"?: string;
         /**
@@ -79,33 +103,41 @@ declare namespace LocalJSX {
          */
         "loadOnClickSelector"?: string;
         /**
-          * Whether to load the video automatically when a parent element with the specified selector is opened
+          * CSS selector for a parent element that triggers loading when it becomes visible
          */
         "loadOnParentOpen"?: string;
         /**
-          * Whether to load the preview image automatically when it becomes visible
+          * Load only the preview image when the component becomes visible in the viewport
          */
         "loadOnVisible"?: boolean;
         /**
-          * Whether to load the video automatically when it becomes visible
+          * Extra query parameters to append to the embed URL (e.g. "start=30&loop=1")
+         */
+        "params"?: string;
+        /**
+          * Load the video when it becomes visible in the viewport, without user interaction
          */
         "playOnVisible"?: boolean;
         /**
-          * URL of the preview image to display before loading the video
+          * URL of the preview image to display before loading the video. When omitted, a YouTube thumbnail is derived automatically for YouTube videos.
          */
         "previewImage"?: string;
         /**
-          * URL of the video to embed (YouTube, Vimeo, etc.)
+          * URL of the video to embed (YouTube, Vimeo, or any other iframe URL)
          */
         "src"?: string;
         /**
-          * Title of the video (for accessibility)
+          * Title of the video (used for the iframe title, for accessibility)
          */
         "videoTitle"?: string;
         /**
           * Width of the embed (can be px or %)
          */
         "width"?: string;
+        /**
+          * Load YouTube videos via youtube-nocookie.com (enhanced privacy mode)
+         */
+        "youtubeNocookie"?: boolean;
     }
     interface IntrinsicElements {
         "lazy-embed": LazyEmbed;

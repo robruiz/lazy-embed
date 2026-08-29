@@ -60,15 +60,28 @@ require('@robcruiz/lazy-embed');
 
 | Property | Description | Type | Default |
 |----------|-------------|------|---------|
-| `src` | URL of the video to embed (YouTube, Vimeo, etc.) | `string` | required |
-| `preview-image` | URL of the preview image to display | `string` | required |
+| `src` | URL of the video to embed (YouTube, Vimeo, or any other iframe URL) | `string` | required |
+| `preview-image` | URL of the preview image to display. If omitted, a YouTube thumbnail is derived automatically for YouTube videos | `string` | `''` |
 | `alt` | Alternative text for the preview image | `string` | `'Video preview'` |
 | `width` | Width of the embed (px or %) | `string` | `'100%'` |
-| `height` | Height of the embed (px or %) | `string` | `'auto'` |
-| `video-title` | Title of the video (for accessibility) | `string` | `''` |
-| `load-on-visible` | Load video when it becomes visible in viewport | `boolean` | `false` |
+| `height` | Explicit height of the embed (px or %). When left as `auto`, sizing comes from `aspect-ratio` | `string` | `'auto'` |
+| `aspect-ratio` | Aspect ratio used when height is `auto` (e.g. `16:9`, `4:3`, `1:1`) | `string` | `'16:9'` |
+| `video-title` | Title of the video (used for the iframe title, for accessibility) | `string` | `''` |
+| `autoplay` | Whether the embedded video autoplays once loaded | `boolean` | `true` |
+| `youtube-nocookie` | Load YouTube videos via youtube-nocookie.com (enhanced privacy mode) | `boolean` | `false` |
+| `params` | Extra query parameters appended to the embed URL (e.g. `start=30&loop=1`) | `string` | `''` |
+| `play-on-visible` | Load video when it becomes visible in viewport | `boolean` | `false` |
+| `load-on-visible` | Load preview image when it becomes visible in viewport | `boolean` | `false` |
 | `load-on-parent-open` | CSS selector for parent element that triggers loading when opened | `string` | `''` |
 | `load-on-click-selector` | CSS selector for elements that trigger loading when clicked | `string` | `''` |
+
+The component also exposes a public `loadVideo()` method and is fully keyboard
+accessible: the play overlay is a real `<button>` that can be focused and
+activated with Enter/Space.
+
+The component is reactive to attribute changes: updating `src` (e.g. from a
+block editor) re-parses the URL and drops back to the preview state, so the
+new video is loaded fresh.
 
 ## Advanced Usage Examples
 
@@ -108,6 +121,19 @@ require('@robcruiz/lazy-embed');
   src="https://www.youtube.com/watch?v=dQw4w9WgXcQ" 
   preview-image="https://img.youtube.com/vi/dQw4w9WgXcQ/maxresdefault.jpg"
   load-on-click-selector="#load-video-btn">
+</lazy-embed>
+```
+
+
+### Privacy Mode and Extra Params
+
+```html
+<lazy-embed 
+  src="https://www.youtube.com/watch?v=dQw4w9WgXcQ" 
+  youtube-nocookie="true"
+  autoplay="false"
+  params="start=30&rel=0"
+  aspect-ratio="4:3">
 </lazy-embed>
 ```
 

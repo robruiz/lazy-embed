@@ -1,4 +1,5 @@
-import { Component, Prop, State, Method, Element, Listen, h } from '@stencil/core';
+import { Component, Prop, State, Method, Element, Watch, h } from '@stencil/core';
+import { getFallbackThumbnail, normalizeAspectRatio, parseVideoUrl, VideoInfo } from '../../utils/utils';
 
 @Component({
   tag: 'lazy-embed',
@@ -12,12 +13,13 @@ export class LazyEmbed {
   @Element() el: HTMLElement;
 
   /**
-   * URL of the video to embed (YouTube, Vimeo, etc.)
+   * URL of the video to embed (YouTube, Vimeo, or any other iframe URL)
    */
   @Prop() src: string;
 
   /**
-   * URL of the preview image to display before loading the video
+   * URL of the preview image to display before loading the video.
+   * When omitted, a YouTube thumbnail is derived automatically for YouTube videos.
    */
   @Prop() previewImage: string;
 
@@ -32,27 +34,49 @@ export class LazyEmbed {
   @Prop() width: string = '100%';
 
   /**
-   * Height of the embed (can be px or %)
+   * Explicit height of the embed. When left as "auto", the embed is sized
+   * by the aspectRatio prop instead.
    */
   @Prop() height: string = 'auto';
 
   /**
-   * Title of the video (for accessibility)
+   * Aspect ratio used when height is "auto" (e.g. "16:9", "4:3", "1:1")
+   */
+  @Prop() aspectRatio: string = '16:9';
+
+  /**
+   * Title of the video (used for the iframe title, for accessibility)
    */
   @Prop() videoTitle: string = '';
 
   /**
-   * Whether to load the preview image automatically when it becomes visible
+   * Whether the embedded video should autoplay once loaded.
+   * Note: browsers may still block autoplay if the video has sound.
    */
-  @Prop() loadOnVisible: boolean = false;
+  @Prop() autoplay: boolean = true;
 
   /**
-   * Whether to load the video automatically when it becomes visible
+   * Load YouTube videos via youtube-nocookie.com (enhanced privacy mode)
+   */
+  @Prop() youtubeNocookie: boolean = false;
+
+  /**
+   * Extra query parameters to append to the embed URL (e.g. "start=30&loop=1")
+   */
+  @Prop() params: string = '';
+
+  /**
+   * Load the video when it becomes visible in the viewport, without user interaction
    */
   @Prop() playOnVisible: boolean = false;
 
   /**
-   * Whether to load the video automatically when a parent element with the specified selector is opened
+   * Load only the preview image when the component becomes visible in the viewport
+   */
+  @Prop() loadOnVisible: boolean = false;
+
+  /**
+   * CSS selector for a parent element that triggers loading when it becomes visible
    */
   @Prop() loadOnParentOpen: string = '';
 
@@ -94,27 +118,21 @@ export class LazyEmbed {
   /**
    * Parsed video information
    */
-  private videoInfo: {
-    type: 'youtube' | 'vimeo' | 'unknown';
-    id: string;
-    embedUrl: string;
-  };
+  private videoInfo: VideoInfo;
 
   /**
    * Component lifecycle method that runs when the component is first connected to the DOM
    */
   connectedCallback() {
     this.parseVideoUrl();
+    this.imageLoaded = this.shouldLoadImageImmediately();
 
     if (this.playOnVisible) {
       this.setupPlayIntersectionObserver();
     }
 
-    if (this.loadOnVisible && this.previewImage) {
+    if (this.loadOnVisible && this.resolvedPreviewImage) {
       this.setupImageIntersectionObserver();
-    } else if (this.previewImage) {
-      // If loadOnVisible is false, load the image immediately
-      this.imageLoaded = true;
     }
 
     if (this.loadOnParentOpen) {
@@ -127,19 +145,53 @@ export class LazyEmbed {
   }
 
   /**
+   * Re-parse the video URL and reset the component state whenever the src
+   * attribute changes. This keeps the component reactive in environments
+   * (like the Gutenberg editor) where attributes are updated dynamically.
+   */
+  @Watch('src')
+  handleSrcChange() {
+    this.parseVideoUrl();
+    this.imageLoaded = this.shouldLoadImageImmediately();
+
+    if (this.loaded) {
+      // The source changed underneath a loaded video: drop back to the
+      // preview state so the new URL is not silently ignored.
+      this.loaded = false;
+    }
+
+    if (this.loadOnVisible && this.resolvedPreviewImage && !this.imageObserver) {
+      this.setupImageIntersectionObserver();
+    }
+  }
+
+  /**
+   * Rebuild the embed URL when embed-affecting props change
+   */
+  @Watch('autoplay')
+  @Watch('youtubeNocookie')
+  @Watch('params')
+  handleEmbedOptionChange() {
+    this.parseVideoUrl();
+  }
+
+  /**
    * Component lifecycle method that runs when the component is disconnected from the DOM
    */
   disconnectedCallback() {
     if (this.playObserver) {
       this.playObserver.disconnect();
+      this.playObserver = undefined;
     }
 
     if (this.imageObserver) {
       this.imageObserver.disconnect();
+      this.imageObserver = undefined;
     }
 
     if (this.mutationObserver) {
       this.mutationObserver.disconnect();
+      this.mutationObserver = undefined;
     }
 
     // Remove click event listeners
@@ -150,49 +202,35 @@ export class LazyEmbed {
   }
 
   /**
+   * The preview image to display: the explicit previewImage prop, or a
+   * derived YouTube thumbnail when available.
+   */
+  private get resolvedPreviewImage(): string {
+    return this.previewImage || getFallbackThumbnail(this.videoInfo) || '';
+  }
+
+  /**
+   * Whether the preview image should be loaded immediately (when
+   * load-on-visible is not enabled)
+   */
+  private shouldLoadImageImmediately(): boolean {
+    return !this.loadOnVisible && !!this.resolvedPreviewImage;
+  }
+
+  /**
    * Parse the video URL to extract information needed for embedding
    */
   private parseVideoUrl() {
-    if (!this.src) {
-      this.videoInfo = {
-        type: 'unknown',
-        id: '',
-        embedUrl: '',
-      };
-      return;
-    }
-
-    // YouTube URL patterns
-    const youtubeRegex = /(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/\s]{11})/i;
-    const youtubeMatch = this.src.match(youtubeRegex);
-
-    // Vimeo URL patterns
-    const vimeoRegex = /(?:vimeo\.com\/(?:video\/)?|player\.vimeo\.com\/video\/)(\d+)/i;
-    const vimeoMatch = this.src.match(vimeoRegex);
-
-    if (youtubeMatch && youtubeMatch[1]) {
-      this.videoInfo = {
-        type: 'youtube',
-        id: youtubeMatch[1],
-        embedUrl: `https://www.youtube.com/embed/${youtubeMatch[1]}?autoplay=1`,
-      };
-    } else if (vimeoMatch && vimeoMatch[1]) {
-      this.videoInfo = {
-        type: 'vimeo',
-        id: vimeoMatch[1],
-        embedUrl: `https://player.vimeo.com/video/${vimeoMatch[1]}?autoplay=1`,
-      };
-    } else {
-      // For other embed types, use the src directly
-      this.videoInfo = {
-        type: 'unknown',
-        id: '',
-        embedUrl: this.src,
-      };
-    }
+    this.videoInfo = parseVideoUrl(this.src, {
+      autoplay: this.autoplay,
+      youtubeNocookie: this.youtubeNocookie,
+      params: this.params,
+    });
   }
 
-  // Add a new method to set up click event listeners
+  /**
+   * Set up click event listeners on external trigger elements
+   */
   private setupExternalClickListeners() {
     if (!this.loadOnClickSelector) {
       return;
@@ -230,7 +268,7 @@ export class LazyEmbed {
       {
         rootMargin: '100px',
         threshold: 0.1,
-      }
+      },
     );
 
     this.playObserver.observe(this.el);
@@ -245,12 +283,13 @@ export class LazyEmbed {
         if (entries[0].isIntersecting && !this.imageLoaded) {
           this.imageLoaded = true;
           this.imageObserver.disconnect();
+          this.imageObserver = undefined;
         }
       },
       {
         rootMargin: '50px',
         threshold: 0.1,
-      }
+      },
     );
 
     this.imageObserver.observe(this.el);
@@ -302,11 +341,7 @@ export class LazyEmbed {
     }
   }
 
-  /**
-   * Listen for click events on the preview image
-   */
-  @Listen('click')
-  handleClick() {
+  private handlePlayClick() {
     if (!this.loaded) {
       this.loadVideo();
     }
@@ -316,31 +351,11 @@ export class LazyEmbed {
     const containerStyle = {
       width: this.width,
       height: this.height !== 'auto' ? this.height : null,
-      position: 'relative',
+      aspectRatio:
+        this.height === 'auto' ? normalizeAspectRatio(this.aspectRatio) || '16 / 9' : null,
     };
 
-    if (!this.loaded) {
-      return (
-        <div class="lazy-embed-container" style={containerStyle}>
-          <div class="preview-container">
-            {this.previewImage && this.imageLoaded ? (
-              <img
-                src={this.previewImage}
-                alt={this.alt}
-                class="preview-image"
-              />
-            ) : (
-              <div class="placeholder">
-                <div class="play-button"></div>
-              </div>
-            )}
-            <div class="play-overlay">
-              <div class="play-button" aria-label="Play video"></div>
-            </div>
-          </div>
-        </div>
-      );
-    } else {
+    if (this.loaded && this.videoInfo.embedUrl) {
       return (
         <div class="lazy-embed-container" style={containerStyle}>
           <div class="embed-responsive">
@@ -355,5 +370,40 @@ export class LazyEmbed {
         </div>
       );
     }
+
+    const showImage = !!this.resolvedPreviewImage && this.imageLoaded;
+    const playLabel = this.videoTitle || this.alt || 'Play video';
+
+    return (
+      <div class="lazy-embed-container" style={containerStyle}>
+        <div class="preview-container">
+          {showImage ? (
+            <img
+              src={this.resolvedPreviewImage}
+              alt={this.alt}
+              class="preview-image"
+              loading="lazy"
+              decoding="async"
+            />
+          ) : (
+            <div class="placeholder"></div>
+          )}
+          {this.videoInfo.embedUrl ? (
+            <button
+              type="button"
+              class="play-overlay"
+              aria-label={`Play video: ${playLabel}`}
+              onClick={() => this.handlePlayClick()}
+            >
+              <span class="play-button" aria-hidden="true"></span>
+            </button>
+          ) : (
+            <div class="play-overlay play-overlay--disabled">
+              <span class="play-button" aria-hidden="true"></span>
+            </div>
+          )}
+        </div>
+      </div>
+    );
   }
 }
