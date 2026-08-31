@@ -21,7 +21,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/robruiz/lazy-embed.git"
+    "url": "git+https://github.com/robruiz/lazy-embed.git"
   },
   "files": [
     "dist/",

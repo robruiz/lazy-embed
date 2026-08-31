@@ -8,7 +8,7 @@ jobs:
   publish:
     runs-on: ubuntu-latest
     permissions:
-      contents: write  # Needed for pushing changes
+      contents: write  # Needed for pushing the version commit and tag
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -23,11 +23,14 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '18'
+          node-version: '20'
           registry-url: 'https://registry.npmjs.org'
 
       - name: Install dependencies
         run: npm ci
+
+      - name: Normalize package.json
+        run: npm pkg fix
 
       - name: Build project
         run: npm run build
@@ -35,14 +38,14 @@ jobs:
       - name: Increment patch version
         id: version
         run: |
-          npm version patch
+          npm version patch -m "chore(release): v%s [skip ci]"
           echo "NEW_VERSION=$(node -p "require('./package.json').version")" >> $GITHUB_OUTPUT
-
-      - name: Configure NPM Authentication
-        run: npm config set '//registry.npmjs.org/:_authToken' "${NODE_AUTH_TOKEN}"
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
       - name: Publish to NPM
         run: npm publish --access public
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
+      - name: Push version commit and tag
+        if: success()
+        run: git push origin HEAD:master --follow-tags
